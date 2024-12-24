@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"log/slog"
+	"net/http"
 
 	expand "github.com/openvenues/gopostal/expand"
 	parser "github.com/openvenues/gopostal/parser"
@@ -21,10 +23,7 @@ type Parse struct {
 
 type ExpansionResponse = []Expansion
 type ParseResponse = []Parse
-
-type AddressRequest struct {
-	Addresses []string `json:"addresses"`
-}
+type AddressRequest = []string
 
 type ExpandOptionsRequest struct {
 	Options   ExpandOptions `json:"options"`
@@ -51,12 +50,12 @@ func main() {
 
 	expand := fuego.Group(s, "/expand")
 	fuego.Post(expand, "", func(c fuego.ContextWithBody[AddressRequest]) (ExpansionResponse, error) {
-		request, err := c.Body()
+		addresses, err := parseAddressList(c.Request())
 		if err != nil {
 			return nil, err
 		}
 
-		return expandAddresses(request.Addresses, defaultLibpostalExpandOptions), nil
+		return expandAddresses(addresses, defaultLibpostalExpandOptions), nil
 	}, fuego.OptionSummary("Expand many addresses"), fuego.OptionDescription("Expand many addresses using the libpostal expand function"))
 
 	fuego.Post(expand, "/advanced", func(c fuego.ContextWithBody[ExpandOptionsRequest]) (ExpansionResponse, error) {
@@ -74,12 +73,12 @@ func main() {
 
 	parse := fuego.Group(s, "/parse")
 	fuego.Post(parse, "", func(c fuego.ContextWithBody[AddressRequest]) (ParseResponse, error) {
-		request, err := c.Body()
+		addresses, err := parseAddressList(c.Request())
 		if err != nil {
 			return nil, err
 		}
 
-		return parseAddresses(request.Addresses, defaultLibpostalParseOptions), nil
+		return parseAddresses(addresses, defaultLibpostalParseOptions), nil
 	}, fuego.OptionSummary("Parse many addresses"), fuego.OptionDescription("Parse many addresses using the libpostal parse function"))
 
 	fuego.Post(parse, "/advanced", func(c fuego.ContextWithBody[ParseOptionsRequest]) (ParseResponse, error) {
@@ -96,6 +95,16 @@ func main() {
 	}, fuego.OptionSummary("Get default options"), fuego.OptionDescription("Get the default options used by the parse function"))
 
 	s.Run()
+}
+
+func parseAddressList(r *http.Request) (AddressRequest, error) {
+	var addresses []string
+	err := json.NewDecoder(r.Body).Decode(&addresses)
+	if err != nil {
+		return nil, err
+	}
+
+	return addresses, nil
 }
 
 func expandAddresses(addresses []string, options expand.ExpandOptions) ExpansionResponse {
