@@ -36,7 +36,18 @@ type ParseOptionsRequest struct {
 }
 
 func main() {
-	s := fuego.NewServer()
+	s := fuego.NewServer(
+		fuego.WithAddr("0.0.0.0:8724"),
+		fuego.WithOpenAPIConfig(fuego.OpenAPIConfig{
+			DisableLocalSave: true,
+			DisableSwaggerUI: false,
+			DisableSwagger:   false,
+
+			JsonUrl:      "/docs/openapi.json",
+			SwaggerUrl:   "/docs",
+			PrettyFormatJson: true,
+		}),
+	)
 
 	fuego.Get(s, "/", func(c fuego.ContextNoBody) (string, error) {
 		return "LibPostal rest wrapper", nil
@@ -94,7 +105,10 @@ func main() {
 		return exportParseOptions(defaultLibpostalParseOptions), nil
 	}, fuego.OptionSummary("Get default options"), fuego.OptionDescription("Get the default options used by the parse function"))
 
-	s.Run()
+	err := s.Run()
+	if err != nil {
+		slog.Error("Error running server", "error", err)
+	}
 }
 
 func parseAddressList(r *http.Request) (AddressRequest, error) {

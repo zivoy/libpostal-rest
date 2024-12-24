@@ -26,6 +26,6 @@ COPY --from=libpostal-build /data /data
 
 COPY --from=builder /dist/ /
 
-EXPOSE 8080
+EXPOSE 8724
 USER 65534
 CMD [ "/app" ]
