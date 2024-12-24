@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -36,6 +37,8 @@ type ParseOptionsRequest struct {
 	Addresses []string      `json:"addresses"`
 }
 
+var Version string
+
 func main() {
 	s := fuego.NewServer(
 		fuego.WithAddr("0.0.0.0:8724"),
@@ -55,7 +58,7 @@ func main() {
 	)
 
 	fuego.Get(s, "/", func(c fuego.ContextNoBody) (string, error) {
-		return "LibPostal rest wrapper", nil
+		return fmt.Sprintf("LibPostal rest wrapper (%s)", Version), nil
 	}, fuego.OptionSummary("Welcome page"))
 
 	defaultLibpostalExpandOptions := expand.GetDefaultExpansionOptions()

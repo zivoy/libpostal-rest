@@ -19,6 +19,6 @@ go build
 ## Running with docker
 
 ```bash
-docker build -t zivoy/libpostal-rest .
-docker run -p 8724:8724 zivoy/libpostal-rest
+docker build -t libpostal-rest .
+docker run -p 8724:8724 libpostal-rest
 ```

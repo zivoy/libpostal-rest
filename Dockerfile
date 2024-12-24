@@ -14,8 +14,10 @@ RUN apk add --no-cache alpine-sdk
 COPY go.sum go.mod ./
 RUN go mod download
 
+ARG VERSION=latest
+
 COPY . .
-RUN CGO_ENABLED=1 go build -ldflags='-s -w' -trimpath -o /dist/app
+RUN CGO_ENABLED=1 go build -ldflags="-s -w -X main.Version=$VERSION" -trimpath -o /dist/app
 
 RUN ldd /dist/app | tr -s [:blank:] '\n' | grep ^/ | xargs -I % install -D % /dist/%
 RUN ln -s ld-musl-x86_64.so.1 /dist/lib/libc.musl-x86_64.so.1
@@ -26,6 +28,7 @@ COPY --from=libpostal-build /data /data
 
 COPY --from=builder /dist/ /
 
+LABEL org.opencontainers.image.source="https://github.com/zivoy/libpostal-rest"
 EXPOSE 8724
 USER 65534
 CMD [ "/app" ]
