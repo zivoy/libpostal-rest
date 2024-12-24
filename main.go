@@ -4,7 +4,7 @@ import (
 	"log/slog"
 
 	expand "github.com/openvenues/gopostal/expand"
-	// parser "github.com/openvenues/gopostal/parser"
+	parser "github.com/openvenues/gopostal/parser"
 
 	"github.com/go-fuego/fuego"
 )
@@ -14,11 +14,23 @@ type Expansion struct {
 	Expansions []string `json:"expansions"`
 }
 
+type Parse struct {
+	Address string            `json:"address"`
+	Parse   []parser.ParsedComponent `json:"parse"`
+}
+
 type ExpansionRequest = []string
 type ExpansionResponse = []Expansion
+type ParseRequest = []string
+type ParseResponse = []Parse
 
 type ExpandOptionsRequest struct {
-	Options   ExpandOptions `json:"Options"`
+	Options   ExpandOptions `json:"options"`
+	Addresses []string      `json:"addresses"`
+}
+
+type ParseOptionsRequest struct {
+	Options   ParserOptions `json:"options"`
 	Addresses []string      `json:"addresses"`
 }
 
@@ -29,7 +41,11 @@ func main() {
 		return "LibPostal rest wrapper", nil
 	}, fuego.OptionSummary("Welcome page"))
 
-	defailtLibpostalOptions := expand.GetDefaultExpansionOptions()
+	defaultLibpostalExpandOptions := expand.GetDefaultExpansionOptions()
+	defaultLibpostalParseOptions := parser.ParserOptions { // the get function is not exposed for some reason
+        Language: "",
+        Country: "",
+    }
 
 	expand := fuego.Group(s, "/expand")
 	fuego.Post(expand, "", func(c fuego.ContextWithBody[ExpansionRequest]) (ExpansionResponse, error) {
@@ -38,7 +54,7 @@ func main() {
 			return nil, err
 		}
 
-		return expandAddresses(addresses, defailtLibpostalOptions), nil
+		return expandAddresses(addresses, defaultLibpostalExpandOptions), nil
 	}, fuego.OptionSummary("Expand many addresses"), fuego.OptionDescription("Expand many addresses using the libpostal expand function"))
 
 	fuego.Post(expand, "/advanced", func(c fuego.ContextWithBody[ExpandOptionsRequest]) (ExpansionResponse, error) {
@@ -47,12 +63,35 @@ func main() {
 			return nil, err
 		}
 
-		return expandAddresses(request.Addresses, getOptions(request.Options)), nil
+		return expandAddresses(request.Addresses, importExpandOptions(request.Options)), nil
 	}, fuego.OptionSummary("Expand many addresses with options"), fuego.OptionDescription("Expand many addresses using the libpostal expand function, you can also specify options"))
 
 	fuego.Get(expand, "/default", func(c fuego.ContextNoBody) (ExpandOptions, error) {
-		return getExteriorOptions(defailtLibpostalOptions), nil
+		return exportExpandOptions(defaultLibpostalExpandOptions), nil
 	}, fuego.OptionSummary("Get default options"), fuego.OptionDescription("Get the default options used by the expand function"))
+
+	parse := fuego.Group(s, "/parse")
+	fuego.Post(parse, "", func(c fuego.ContextWithBody[ParseRequest]) (ParseResponse, error) {
+		addresses, err := c.Body()
+		if err != nil {
+			return nil, err
+		}
+
+		return parseAddresses(addresses, defaultLibpostalParseOptions), nil
+	}, fuego.OptionSummary("Parse many addresses"), fuego.OptionDescription("Parse many addresses using the libpostal parse function"))
+
+	fuego.Post(parse, "/advanced", func(c fuego.ContextWithBody[ParseOptionsRequest]) (ParseResponse, error) {
+		request, err := c.Body()
+		if err != nil {
+			return nil, err
+		}
+
+		return parseAddresses(request.Addresses, importParseOptions(request.Options)), nil
+	}, fuego.OptionSummary("Parse many addresses with options"), fuego.OptionDescription("Parse many addresses using the libpostal parse function, you can also specify options"))
+
+	fuego.Get(parse, "/default", func(c fuego.ContextNoBody) (ParserOptions, error) {
+		return exportParseOptions(defaultLibpostalParseOptions), nil
+	}, fuego.OptionSummary("Get default options"), fuego.OptionDescription("Get the default options used by the parse function"))
 
 	s.Run()
 }
@@ -70,7 +109,20 @@ func expandAddresses(addresses []string, options expand.ExpandOptions) Expansion
 	return expansions
 }
 
-func getOptions(options ExpandOptions) expand.ExpandOptions {
+func parseAddresses(addresses []string, options parser.ParserOptions) ParseResponse {
+	slog.Debug("parsing addresses", "addresses", addresses, "options", options)
+	parses := make([]Parse, len(addresses))
+
+	for i, str := range addresses {
+		parsed := parser.ParseAddressOptions(str, options)
+		parses[i] = Parse{Address: str, Parse: parsed}
+		slog.Debug("parsed", "parses", parses[i])
+	}
+
+	return parses
+}
+
+func importExpandOptions(options ExpandOptions) expand.ExpandOptions {
 	return expand.ExpandOptions{
 		Languages:              options.Languages,
 		AddressComponents:      options.AddressComponents,
@@ -94,7 +146,7 @@ func getOptions(options ExpandOptions) expand.ExpandOptions {
 	}
 }
 
-func getExteriorOptions(options expand.ExpandOptions) ExpandOptions {
+func exportExpandOptions(options expand.ExpandOptions) ExpandOptions {
 	return ExpandOptions{
 		Languages:              options.Languages,
 		AddressComponents:      options.AddressComponents,
@@ -115,6 +167,20 @@ func getExteriorOptions(options expand.ExpandOptions) ExpandOptions {
 		DeleteApostrophes:      options.DeleteApostrophes,
 		ExpandNumex:            options.ExpandNumex,
 		RomanNumerals:          options.RomanNumerals,
+	}
+}
+
+func importParseOptions(options ParserOptions) parser.ParserOptions {
+	return parser.ParserOptions {
+        Language: options.Language,
+		Country: options.Country,
+    }
+}
+
+func exportParseOptions(options parser.ParserOptions) ParserOptions {
+	return ParserOptions {
+		Language: options.Language,
+		Country: options.Country,
 	}
 }
 
@@ -139,3 +205,9 @@ type ExpandOptions struct {
 	ExpandNumex            bool     `json:"expand_numex,omitempty"`
 	RomanNumerals          bool     `json:"roman_numerals,omitempty"`
 }
+
+type ParserOptions struct {
+    Language string `json:"language,omitempty"`
+    Country string `json:"country,omitempty"`
+}
+
