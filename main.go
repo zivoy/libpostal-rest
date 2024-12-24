@@ -216,30 +216,30 @@ func exportParseOptions(options parser.ParserOptions) ParserOptions {
 }
 
 type ExpandOptions struct {
-	Languages              []string `json:"languages,omitempty"`
-	AddressComponents      uint16   `json:"address_components,omitempty"`
-	LatinAscii             bool     `json:"latin_ascii,omitempty"`
-	Transliterate          bool     `json:"transliterate,omitempty"`
-	StripAccents           bool     `json:"strip_accents,omitempty"`
-	Decompose              bool     `json:"decompose,omitempty"`
-	Lowercase              bool     `json:"lowercase,omitempty"`
-	TrimString             bool     `json:"trim_string,omitempty"`
-	ReplaceWordHyphens     bool     `json:"replace_word_hyphens,omitempty"`
-	DeleteWordHyphens      bool     `json:"delete_word_hyphens,omitempty"`
-	ReplaceNumericHyphens  bool     `json:"replace_numeric_hyphens,omitempty"`
-	DeleteNumericHyphens   bool     `json:"delete_numeric_hyphens,omitempty"`
-	SplitAlphaFromNumeric  bool     `json:"split_alpha_from_numeric,omitempty"`
-	DeleteFinalPeriods     bool     `json:"delete_final_periods,omitempty"`
-	DeleteAcronymPeriods   bool     `json:"delete_acronym_periods,omitempty"`
-	DropEnglishPossessives bool     `json:"drop_english_possessives,omitempty"`
-	DeleteApostrophes      bool     `json:"delete_apostrophes,omitempty"`
-	ExpandNumex            bool     `json:"expand_numex,omitempty"`
-	RomanNumerals          bool     `json:"roman_numerals,omitempty"`
+	Languages              []string `json:"languages"`
+	AddressComponents      uint16   `json:"address_components"`
+	LatinAscii             bool     `json:"latin_ascii"`
+	Transliterate          bool     `json:"transliterate"`
+	StripAccents           bool     `json:"strip_accents"`
+	Decompose              bool     `json:"decompose"`
+	Lowercase              bool     `json:"lowercase"`
+	TrimString             bool     `json:"trim_string"`
+	ReplaceWordHyphens     bool     `json:"replace_word_hyphens"`
+	DeleteWordHyphens      bool     `json:"delete_word_hyphens"`
+	ReplaceNumericHyphens  bool     `json:"replace_numeric_hyphens"`
+	DeleteNumericHyphens   bool     `json:"delete_numeric_hyphens"`
+	SplitAlphaFromNumeric  bool     `json:"split_alpha_from_numeric"`
+	DeleteFinalPeriods     bool     `json:"delete_final_periods"`
+	DeleteAcronymPeriods   bool     `json:"delete_acronym_periods"`
+	DropEnglishPossessives bool     `json:"drop_english_possessives"`
+	DeleteApostrophes      bool     `json:"delete_apostrophes"`
+	ExpandNumex            bool     `json:"expand_numex"`
+	RomanNumerals          bool     `json:"roman_numerals"`
 }
 
 type ParserOptions struct {
-	Language string `json:"language,omitempty"`
-	Country  string `json:"country,omitempty"`
+	Language string `json:"language"`
+	Country  string `json:"country"`
 }
 
 // parser labels
