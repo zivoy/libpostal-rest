@@ -19,10 +19,12 @@ type Parse struct {
 	Parse   []parser.ParsedComponent `json:"parse"`
 }
 
-type ExpansionRequest = []string
 type ExpansionResponse = []Expansion
-type ParseRequest = []string
 type ParseResponse = []Parse
+
+type AddressRequest struct {
+	Addresses []string `json:"addresses"`
+}
 
 type ExpandOptionsRequest struct {
 	Options   ExpandOptions `json:"options"`
@@ -48,13 +50,13 @@ func main() {
 	}
 
 	expand := fuego.Group(s, "/expand")
-	fuego.Post(expand, "", func(c fuego.ContextWithBody[ExpansionRequest]) (ExpansionResponse, error) {
-		addresses, err := c.Body()
+	fuego.Post(expand, "", func(c fuego.ContextWithBody[AddressRequest]) (ExpansionResponse, error) {
+		request, err := c.Body()
 		if err != nil {
 			return nil, err
 		}
 
-		return expandAddresses(addresses, defaultLibpostalExpandOptions), nil
+		return expandAddresses(request.Addresses, defaultLibpostalExpandOptions), nil
 	}, fuego.OptionSummary("Expand many addresses"), fuego.OptionDescription("Expand many addresses using the libpostal expand function"))
 
 	fuego.Post(expand, "/advanced", func(c fuego.ContextWithBody[ExpandOptionsRequest]) (ExpansionResponse, error) {
@@ -71,13 +73,13 @@ func main() {
 	}, fuego.OptionSummary("Get default options"), fuego.OptionDescription("Get the default options used by the expand function"))
 
 	parse := fuego.Group(s, "/parse")
-	fuego.Post(parse, "", func(c fuego.ContextWithBody[ParseRequest]) (ParseResponse, error) {
-		addresses, err := c.Body()
+	fuego.Post(parse, "", func(c fuego.ContextWithBody[AddressRequest]) (ParseResponse, error) {
+		request, err := c.Body()
 		if err != nil {
 			return nil, err
 		}
 
-		return parseAddresses(addresses, defaultLibpostalParseOptions), nil
+		return parseAddresses(request.Addresses, defaultLibpostalParseOptions), nil
 	}, fuego.OptionSummary("Parse many addresses"), fuego.OptionDescription("Parse many addresses using the libpostal parse function"))
 
 	fuego.Post(parse, "/advanced", func(c fuego.ContextWithBody[ParseOptionsRequest]) (ParseResponse, error) {
@@ -101,7 +103,8 @@ func expandAddresses(addresses []string, options expand.ExpandOptions) Expansion
 	expansions := make([]Expansion, len(addresses))
 
 	for i, str := range addresses {
-		expanded := expand.ExpandAddressOptions(str, options)
+		var expanded []string
+		expanded = expand.ExpandAddressOptions(str, options)
 		expansions[i] = Expansion{Address: str, Expansions: expanded}
 		slog.Debug("expanded", "expansions", expansions[i])
 	}
