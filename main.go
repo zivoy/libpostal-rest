@@ -9,6 +9,7 @@ import (
 	parser "github.com/openvenues/gopostal/parser"
 
 	"github.com/go-fuego/fuego"
+	"github.com/rs/cors"
 )
 
 type Expansion struct {
@@ -43,10 +44,14 @@ func main() {
 			DisableSwaggerUI: false,
 			DisableSwagger:   false,
 
-			JsonUrl:      "/docs/openapi.json",
-			SwaggerUrl:   "/docs",
+			JsonUrl:          "/docs/openapi.json",
+			SwaggerUrl:       "/docs",
 			PrettyFormatJson: true,
 		}),
+		fuego.WithCorsMiddleware(cors.New(cors.Options{
+			AllowedOrigins: []string{"*"},
+			AllowedMethods: []string{"GET", "POST"},
+		}).Handler),
 	)
 
 	fuego.Get(s, "/", func(c fuego.ContextNoBody) (string, error) {
