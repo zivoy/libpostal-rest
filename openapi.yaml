@@ -1,0 +1,51 @@
+openapi: 3.0.3
+info:
+  title: LibPostal rest server
+  description: |-
+    Very simple wrapper for libpostal
+  version: 1.0.0
+paths:
+  /expand:
+    post:
+      summary: Get expansions for addresses
+      description: Takes in a list of addresses and returns a list of expansions for the addresses
+      operationId: expandAddr
+      requestBody:
+        description: AddressExpansions
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Addresses'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Expansions'          
+        '400':
+          description: Invalid input
+
+components:
+  schemas:
+    Addresses:
+      type: array
+      items:
+        type: string
+        example: 123 street st, city, province, country
+    Expansions:
+      type: array
+      items:
+        type: object
+        properties:
+          address:
+            type: string
+            example: 123 street st, city, province, country
+          expansions:
+            type: array
+            items:
+              type: string
+              example: 
+                - 123 street saint city province country
+                - 123 street street city province country
