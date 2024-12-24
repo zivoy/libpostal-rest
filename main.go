@@ -17,8 +17,8 @@ type Expansion struct {
 }
 
 type Parse struct {
-	Address string                   `json:"address"`
-	Parse   []parser.ParsedComponent `json:"parse"`
+	Address string          `json:"address"`
+	Parse   ParsedComponent `json:"parse"`
 }
 
 type ExpansionResponse = []Expansion
@@ -127,7 +127,7 @@ func parseAddresses(addresses []string, options parser.ParserOptions) ParseRespo
 
 	for i, str := range addresses {
 		parsed := parser.ParseAddressOptions(str, options)
-		parses[i] = Parse{Address: str, Parse: parsed}
+		parses[i] = Parse{Address: str, Parse: getParsedComponents(parsed)}
 		slog.Debug("parsed", "parses", parses[i])
 	}
 
@@ -247,25 +247,78 @@ const (
 	ParserWorld_region   = "world_region"
 )
 
-var ParserLabels = [...]string{
-	ParserHouse,
-	ParserCategory,
-	ParserNear,
-	ParserHouse_number,
-	ParserRoad,
-	ParserUnit,
-	ParserLevel,
-	ParserStaircase,
-	ParserEntrance,
-	ParserPo_box,
-	ParserPostcode,
-	ParserSuburb,
-	ParserCity_district,
-	ParserCity,
-	ParserIsland,
-	ParserState_district,
-	ParserState,
-	ParserCountry_region,
-	ParserCountry,
-	ParserWorld_region,
+type ParsedComponent struct {
+	House         string `json:"house,omitempty"`
+	Category      string `json:"category,omitempty"`
+	Near          string `json:"near,omitempty"`
+	HouseNumber   string `json:"house_number,omitempty"`
+	Road          string `json:"road,omitempty"`
+	Unit          string `json:"unit,omitempty"`
+	Level         string `json:"level,omitempty"`
+	Staircase     string `json:"staircase,omitempty"`
+	Entrance      string `json:"entrance,omitempty"`
+	PoBox         string `json:"po_box,omitempty"`
+	Postcode      string `json:"postcode,omitempty"`
+	Suburb        string `json:"suburb,omitempty"`
+	CityDistrict  string `json:"city_district,omitempty"`
+	City          string `json:"city,omitempty"`
+	Island        string `json:"island,omitempty"`
+	StateDistrict string `json:"state_district,omitempty"`
+	State         string `json:"state,omitempty"`
+	CountryRegion string `json:"country_region,omitempty"`
+	Country       string `json:"country,omitempty"`
+	WorldRegion   string `json:"world_region,omitempty"`
+}
+
+func getParsedComponents(parsedComponents []parser.ParsedComponent) ParsedComponent {
+	compoonent := ParsedComponent{}
+
+	for _, component := range parsedComponents {
+		switch component.Label {
+		case ParserHouse:
+			compoonent.House = component.Value
+		case ParserCategory:
+			compoonent.Category = component.Value
+		case ParserNear:
+			compoonent.Near = component.Value
+		case ParserHouse_number:
+			compoonent.HouseNumber = component.Value
+		case ParserRoad:
+			compoonent.Road = component.Value
+		case ParserUnit:
+			compoonent.Unit = component.Value
+		case ParserLevel:
+			compoonent.Level = component.Value
+		case ParserStaircase:
+			compoonent.Staircase = component.Value
+		case ParserEntrance:
+			compoonent.Entrance = component.Value
+		case ParserPo_box:
+			compoonent.PoBox = component.Value
+		case ParserPostcode:
+			compoonent.Postcode = component.Value
+		case ParserSuburb:
+			compoonent.Suburb = component.Value
+		case ParserCity_district:
+			compoonent.CityDistrict = component.Value
+		case ParserCity:
+			compoonent.City = component.Value
+		case ParserIsland:
+			compoonent.Island = component.Value
+		case ParserState_district:
+			compoonent.StateDistrict = component.Value
+		case ParserState:
+			compoonent.State = component.Value
+		case ParserCountry_region:
+			compoonent.CountryRegion = component.Value
+		case ParserCountry:
+			compoonent.Country = component.Value
+		case ParserWorld_region:
+			compoonent.WorldRegion = component.Value
+		default:
+			slog.Warn("unknown component", "component", component)
+		}
+	}
+
+	return compoonent
 }
