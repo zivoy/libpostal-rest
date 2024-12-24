@@ -15,7 +15,7 @@ type Expansion struct {
 }
 
 type Parse struct {
-	Address string            `json:"address"`
+	Address string                   `json:"address"`
 	Parse   []parser.ParsedComponent `json:"parse"`
 }
 
@@ -42,10 +42,10 @@ func main() {
 	}, fuego.OptionSummary("Welcome page"))
 
 	defaultLibpostalExpandOptions := expand.GetDefaultExpansionOptions()
-	defaultLibpostalParseOptions := parser.ParserOptions { // the get function is not exposed for some reason
-        Language: "",
-        Country: "",
-    }
+	defaultLibpostalParseOptions := parser.ParserOptions{ // the get function is not exposed for some reason
+		Language: "",
+		Country:  "",
+	}
 
 	expand := fuego.Group(s, "/expand")
 	fuego.Post(expand, "", func(c fuego.ContextWithBody[ExpansionRequest]) (ExpansionResponse, error) {
@@ -171,16 +171,16 @@ func exportExpandOptions(options expand.ExpandOptions) ExpandOptions {
 }
 
 func importParseOptions(options ParserOptions) parser.ParserOptions {
-	return parser.ParserOptions {
-        Language: options.Language,
-		Country: options.Country,
-    }
+	return parser.ParserOptions{
+		Language: options.Language,
+		Country:  options.Country,
+	}
 }
 
 func exportParseOptions(options parser.ParserOptions) ParserOptions {
-	return ParserOptions {
+	return ParserOptions{
 		Language: options.Language,
-		Country: options.Country,
+		Country:  options.Country,
 	}
 }
 
@@ -207,7 +207,53 @@ type ExpandOptions struct {
 }
 
 type ParserOptions struct {
-    Language string `json:"language,omitempty"`
-    Country string `json:"country,omitempty"`
+	Language string `json:"language,omitempty"`
+	Country  string `json:"country,omitempty"`
 }
 
+// parser labels
+const (
+	ParserHouse          = "house"
+	ParserCategory       = "category"
+	ParserNear           = "near"
+	ParserHouse_number   = "house_number"
+	ParserRoad           = "road"
+	ParserUnit           = "unit"
+	ParserLevel          = "level"
+	ParserStaircase      = "staircase"
+	ParserEntrance       = "entrance"
+	ParserPo_box         = "po_box"
+	ParserPostcode       = "postcode"
+	ParserSuburb         = "suburb"
+	ParserCity_district  = "city_district"
+	ParserCity           = "city"
+	ParserIsland         = "island"
+	ParserState_district = "state_district"
+	ParserState          = "state"
+	ParserCountry_region = "country_region"
+	ParserCountry        = "country"
+	ParserWorld_region   = "world_region"
+)
+
+var ParserLabels = [...]string{
+	ParserHouse,
+	ParserCategory,
+	ParserNear,
+	ParserHouse_number,
+	ParserRoad,
+	ParserUnit,
+	ParserLevel,
+	ParserStaircase,
+	ParserEntrance,
+	ParserPo_box,
+	ParserPostcode,
+	ParserSuburb,
+	ParserCity_district,
+	ParserCity,
+	ParserIsland,
+	ParserState_district,
+	ParserState,
+	ParserCountry_region,
+	ParserCountry,
+	ParserWorld_region,
+}
