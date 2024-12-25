@@ -28,7 +28,6 @@ COPY --from=libpostal-build /data /data
 
 COPY --from=builder /dist/ /
 
-LABEL org.opencontainers.image.source="https://github.com/zivoy/libpostal-rest"
 EXPOSE 8724
 USER 65534
 CMD [ "/app" ]

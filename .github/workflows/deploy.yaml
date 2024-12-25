@@ -48,7 +48,11 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          labels: |
+            ${{ steps.meta.outputs.labels }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.description=Libpostal REST API, see /docs endpoint for more info
+            org.opencontainers.image.licenses=MIT
           build-args: |
             VERSION=${{ steps.get_version.outputs.VERSION }}
           cache-from: type=gha
