@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 
 	expand "github.com/openvenues/gopostal/expand"
 	parser "github.com/openvenues/gopostal/parser"
@@ -59,8 +60,26 @@ func main() {
 	)
 	fuego.Use(s, chiMiddleware.RealIP, chiMiddleware.Recoverer)
 
-	creds := map[string]string{
-		"admin": "admin",
+	creds := map[string]string{}
+	authEnabled := false
+
+	username := os.Getenv("username")
+	if username != "" {
+		password := os.Getenv("password")
+		if password == "" {
+			panic("password not set")
+		}
+		creds[username] = password
+		slog.Info("Basic auth enabled", "username", username, "password", password)
+		authEnabled = true
+	}
+
+	basicAuth := chiMiddleware.BasicAuth("libpostal", creds)
+	authMiddleware := func(next http.Handler) http.Handler {
+		if authEnabled {
+			return basicAuth(next)
+		}
+		return next
 	}
 
 	fuego.Get(s, "/", func(c fuego.ContextNoBody) (string, error) {
@@ -74,7 +93,7 @@ func main() {
 	}
 
 	expand := fuego.Group(s, "/expand")
-	fuego.Use(expand, chiMiddleware.Logger, chiMiddleware.BasicAuth("libpostal", creds))
+	fuego.Use(expand, chiMiddleware.Logger, authMiddleware)
 	fuego.Post(expand, "", func(c fuego.ContextWithBody[AddressRequest]) (ExpansionResponse, error) {
 		addresses, err := parseAddressList(c.Request())
 		if err != nil {
@@ -98,7 +117,7 @@ func main() {
 	}, fuego.OptionSummary("Get default options"), fuego.OptionDescription("Get the default options used by the expand function"))
 
 	parse := fuego.Group(s, "/parse")
-	fuego.Use(parse, chiMiddleware.Logger, chiMiddleware.BasicAuth("libpostal", creds))
+	fuego.Use(parse, chiMiddleware.Logger, authMiddleware)
 	fuego.Post(parse, "", func(c fuego.ContextWithBody[AddressRequest]) (ParseResponse, error) {
 		addresses, err := parseAddressList(c.Request())
 		if err != nil {
