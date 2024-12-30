@@ -9,6 +9,7 @@ import (
 	expand "github.com/openvenues/gopostal/expand"
 	parser "github.com/openvenues/gopostal/parser"
 
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-fuego/fuego"
 	"github.com/rs/cors"
 )
@@ -56,6 +57,11 @@ func main() {
 			AllowedMethods: []string{"GET", "POST"},
 		}).Handler),
 	)
+	fuego.Use(s, chiMiddleware.RealIP, chiMiddleware.Recoverer)
+
+	creds := map[string]string{
+		"admin": "admin",
+	}
 
 	fuego.Get(s, "/", func(c fuego.ContextNoBody) (string, error) {
 		return fmt.Sprintf("LibPostal rest wrapper (%s)", Version), nil
@@ -68,6 +74,7 @@ func main() {
 	}
 
 	expand := fuego.Group(s, "/expand")
+	fuego.Use(expand, chiMiddleware.Logger, chiMiddleware.BasicAuth("libpostal", creds))
 	fuego.Post(expand, "", func(c fuego.ContextWithBody[AddressRequest]) (ExpansionResponse, error) {
 		addresses, err := parseAddressList(c.Request())
 		if err != nil {
@@ -91,6 +98,7 @@ func main() {
 	}, fuego.OptionSummary("Get default options"), fuego.OptionDescription("Get the default options used by the expand function"))
 
 	parse := fuego.Group(s, "/parse")
+	fuego.Use(parse, chiMiddleware.Logger, chiMiddleware.BasicAuth("libpostal", creds))
 	fuego.Post(parse, "", func(c fuego.ContextWithBody[AddressRequest]) (ParseResponse, error) {
 		addresses, err := parseAddressList(c.Request())
 		if err != nil {
